@@ -1,212 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Level Sliding Puzzle Game</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sliding Puzzle Game</title>
 
-        .game-container {
-            text-align: center;
-            width: 80%;
-            max-width: 500px;
-            background-color: #fff;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+<style>
 
-        .puzzle {
-            display: grid;
-            gap: 2px;
-            margin-top: 20px;
-        }
+body{
+font-family:Arial, sans-serif;
+background:#f2f2f2;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
 
-        .controls {
-            margin-top: 20px;
-        }
+.game-container{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.2);
+text-align:center;
+width:420px;
+}
 
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #3498db;
-            color: white;
-            transition: background-color 0.3s ease;
-        }
+.puzzle{
+display:grid;
+gap:6px;
+margin-top:20px;
+}
 
-        button:hover {
-            background-color: #2980b9;
-        }
+.tile{
+background:#3498db;
+color:white;
+font-size:24px;
+font-weight:bold;
+display:flex;
+justify-content:center;
+align-items:center;
+height:90px;
+border-radius:8px;
+cursor:pointer;
+transition:0.2s;
+}
 
-        button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
+.tile:hover{
+background:#2980b9;
+}
 
-        #levelDisplay {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-    </style>
+.controls{
+margin-top:20px;
+}
+
+button{
+padding:10px 20px;
+margin:5px;
+border:none;
+border-radius:6px;
+background:#27ae60;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+
+button:hover{
+background:#1e8449;
+}
+
+button:disabled{
+background:#aaa;
+cursor:not-allowed;
+}
+
+#levelDisplay{
+font-size:18px;
+font-weight:bold;
+margin-top:10px;
+}
+
+</style>
+
 </head>
 <body>
-    <div class="game-container">
-        <h1>Sliding Puzzle Game</h1>
-        <div id="puzzle" class="puzzle"></div>
-        <div class="controls">
-            <button id="nextLevelButton" disabled>Next Level</button>
-            <button id="resetButton">Reset Level</button>
-            <div id="levelDisplay">Level: 1</div>
-        </div>
-    </div>
 
-    <script>
-        // Global variables for the game
-        let currentLevel = 1;
-        let puzzleSize = 3; // Start with 3x3 puzzle
-        let puzzleBoard = [];
-        let emptyPos = { row: puzzleSize - 1, col: puzzleSize - 1 }; // Empty tile at the bottom-right
+<div class="game-container">
 
-        // Elements
-        const puzzleContainer = document.getElementById("puzzle");
-        const nextLevelButton = document.getElementById("nextLevelButton");
-        const resetButton = document.getElementById("resetButton");
-        const levelDisplay = document.getElementById("levelDisplay");
+<h1>Sliding Puzzle</h1>
 
-        function createPuzzleBoard(size) {
-            puzzleSize = size;
-            emptyPos = { row: size - 1, col: size - 1 };
+<div id="puzzle" class="puzzle"></div>
 
-            puzzleBoard = [];
-            let num = 1;
+<div class="controls">
+<button id="nextLevelButton" disabled>Next Level</button>
+<button id="resetButton">Reset</button>
+<div id="levelDisplay">Level: 1</div>
+</div>
 
-            // Create a board with numbers from 1 to size*size - 1
-            for (let i = 0; i < size; i++) {
-                const row = [];
-                for (let j = 0; j < size; j++) {
-                    if (i === size - 1 && j === size - 1) {
-                        row.push(0); // Empty space
-                    } else {
-                        row.push(num++);
-                    }
-                }
-                puzzleBoard.push(row);
-            }
+</div>
 
-            shufflePuzzle();
-        }
+<script>
 
-        function shufflePuzzle() {
-            // Shuffle the puzzle to create a scrambled state
-            for (let i = 0; i < 1000; i++) {
-                const neighbors = getEmptyTileNeighbors();
-                const randMove = neighbors[Math.floor(Math.random() * neighbors.length)];
-                swapTiles(emptyPos, randMove);
-                emptyPos = randMove;
-            }
+let currentLevel = 1;
+let puzzleSize = 3;
+let puzzleBoard = [];
+let emptyPos = {row:2,col:2};
 
-            renderPuzzle();
-        }
+const puzzleContainer = document.getElementById("puzzle");
+const nextLevelButton = document.getElementById("nextLevelButton");
+const resetButton = document.getElementById("resetButton");
+const levelDisplay = document.getElementById("levelDisplay");
 
-        function renderPuzzle() {
-            puzzleContainer.innerHTML = '';
-            puzzleContainer.style.gridTemplateColumns = `repeat(${puzzleSize}, 1fr)`;
-            puzzleContainer.style.gridTemplateRows = `repeat(${puzzleSize}, 1fr)`;
+function createPuzzleBoard(size){
 
-            puzzleBoard.forEach((row, rowIndex) => {
-                row.forEach((tile, colIndex) => {
-                    const tileElement = document.createElement('div');
-                    tileElement.classList.add('tile');
-                    tileElement.textContent = tile !== 0 ? tile : '';
-                    tileElement.dataset.row = rowIndex;
-                    tileElement.dataset.col = colIndex;
-                    tileElement.addEventListener('click', handleTileClick);
-                    puzzleContainer.appendChild(tileElement);
-                });
-            });
-        }
+puzzleSize=size;
+emptyPos={row:size-1,col:size-1};
 
-        function getEmptyTileNeighbors() {
-            const neighbors = [];
-            const { row, col } = emptyPos;
+puzzleBoard=[];
+let num=1;
 
-            if (row > 0) neighbors.push({ row: row - 1, col }); // Up
-            if (row < puzzleSize - 1) neighbors.push({ row: row + 1, col }); // Down
-            if (col > 0) neighbors.push({ row, col: col - 1 }); // Left
-            if (col < puzzleSize - 1) neighbors.push({ row, col: col + 1 }); // Right
+for(let i=0;i<size;i++){
 
-            return neighbors;
-        }
+let row=[];
 
-        function swapTiles(pos1, pos2) {
-            const temp = puzzleBoard[pos1.row][pos1.col];
-            puzzleBoard[pos1.row][pos1.col] = puzzleBoard[pos2.row][pos2.col];
-            puzzleBoard[pos2.row][pos2.col] = temp;
-        }
+for(let j=0;j<size;j++){
 
-        function handleTileClick(event) {
-            const tile = event.target;
-            const tileRow = parseInt(tile.dataset.row);
-            const tileCol = parseInt(tile.dataset.col);
+if(i===size-1 && j===size-1){
+row.push(0);
+}else{
+row.push(num++);
+}
 
-            const neighbors = getEmptyTileNeighbors();
-            const clickedPos = { row: tileRow, col: tileCol };
+}
 
-            if (neighbors.some(neighbor => neighbor.row === clickedPos.row && neighbor.col === clickedPos.col)) {
-                swapTiles(clickedPos, emptyPos);
-                emptyPos = clickedPos;
-                renderPuzzle();
-                if (checkIfSolved()) {
-                    setTimeout(nextLevel, 500);
-                }
-            }
-        }
+puzzleBoard.push(row);
 
-        function checkIfSolved() {
-            for (let i = 0; i < puzzleSize; i++) {
-                for (let j = 0; j < puzzleSize; j++) {
-                    if (puzzleBoard[i][j] !== i * puzzleSize + j + 1 && !(i === puzzleSize - 1 && j === puzzleSize - 1)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
+}
 
-        function nextLevel() {
-            if (currentLevel < 4) {
-                currentLevel++;
-                puzzleSize++;
-                levelDisplay.textContent = `Level: ${currentLevel}`;
-                createPuzzleBoard(puzzleSize);
-                nextLevelButton.disabled = true;
-            }
-        }
+shufflePuzzle();
 
-        function resetLevel() {
-            createPuzzleBoard(puzzleSize);
-            nextLevelButton.disabled = false;
-        }
+}
 
-        nextLevelButton.addEventListener('click', nextLevel);
-        resetButton.addEventListener('click', resetLevel);
+function shufflePuzzle(){
 
-        createPuzzleBoard(puzzleSize);
-    </script>
+for(let i=0;i<1000;i++){
+
+let neighbors=getNeighbors();
+let rand=neighbors[Math.floor(Math.random()*neighbors.length)];
+
+swapTiles(emptyPos,rand);
+emptyPos=rand;
+
+}
+
+renderPuzzle();
+
+}
+
+function renderPuzzle(){
+
+puzzleContainer.innerHTML="";
+
+puzzleContainer.style.gridTemplateColumns=`repeat(${puzzleSize},1fr)`;
+
+puzzleBoard.forEach((row,r)=>{
+
+row.forEach((tile,c)=>{
+
+let div=document.createElement("div");
+
+div.className="tile";
+div.dataset.row=r;
+div.dataset.col=c;
+
+if(tile!==0){
+div.textContent=tile;
+}else{
+div.style.background="transparent";
+div.style.cursor="default";
+}
+
+div.onclick=handleClick;
+
+puzzleContainer.appendChild(div);
+
+});
+
+});
+
+}
+
+function getNeighbors(){
+
+let list=[];
+let {row,col}=emptyPos;
+
+if(row>0) list.push({row:row-1,col});
+if(row<puzzleSize-1) list.push({row:row+1,col});
+if(col>0) list.push({row,col:col-1});
+if(col<puzzleSize-1) list.push({row,col:col+1});
+
+return list;
+
+}
+
+function swapTiles(p1,p2){
+
+let temp=puzzleBoard[p1.row][p1.col];
+puzzleBoard[p1.row][p1.col]=puzzleBoard[p2.row][p2.col];
+puzzleBoard[p2.row][p2.col]=temp;
+
+}
+
+function handleClick(){
+
+let r=parseInt(this.dataset.row);
+let c=parseInt(this.dataset.col);
+
+let neighbors=getNeighbors();
+
+if(neighbors.some(n=>n.row===r && n.col===c)){
+
+swapTiles({row:r,col:c},emptyPos);
+emptyPos={row:r,col:c};
+
+renderPuzzle();
+
+if(checkSolved()){
+setTimeout(nextLevel,500);
+}
+
+}
+
+}
+
+function checkSolved(){
+
+for(let i=0;i<puzzleSize;i++){
+
+for(let j=0;j<puzzleSize;j++){
+
+if(puzzleBoard[i][j]!==i*puzzleSize+j+1 && !(i===puzzleSize-1 && j===puzzleSize-1)){
+return false;
+}
+
+}
+
+}
+
+return true;
+
+}
+
+function nextLevel(){
+
+if(currentLevel<5){
+
+currentLevel++;
+puzzleSize++;
+
+levelDisplay.textContent="Level: "+currentLevel;
+
+createPuzzleBoard(puzzleSize);
+
+}
+
+}
+
+function resetLevel(){
+
+createPuzzleBoard(puzzleSize);
+
+}
+
+nextLevelButton.onclick=nextLevel;
+resetButton.onclick=resetLevel;
+
+createPuzzleBoard(puzzleSize);
+
+</script>
+
 </body>
 </html>
