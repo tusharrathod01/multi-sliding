@@ -3,51 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sliding Puzzle Game</title>
+<title>Sliding Puzzle</title>
 
 <style>
 
 body{
-font-family:Arial, sans-serif;
-background:#f2f2f2;
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#667eea,#764ba2);
 display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
-margin:0;
+color:white;
 }
 
-.game-container{
+.game{
 background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
-text-align:center;
+color:black;
+padding:30px;
+border-radius:15px;
 width:420px;
+text-align:center;
+box-shadow:0 15px 40px rgba(0,0,0,0.3);
 }
 
-.puzzle{
+h1{
+margin-top:0;
+}
+
+#puzzle{
 display:grid;
-gap:6px;
+gap:8px;
 margin-top:20px;
 }
 
 .tile{
-background:#3498db;
+background:#4a6cf7;
 color:white;
 font-size:24px;
 font-weight:bold;
 display:flex;
 justify-content:center;
 align-items:center;
-height:90px;
-border-radius:8px;
+border-radius:10px;
+height:80px;
 cursor:pointer;
 transition:0.2s;
 }
 
 .tile:hover{
-background:#2980b9;
+transform:scale(1.05);
+background:#3955d3;
+}
+
+.empty{
+background:transparent;
+cursor:default;
 }
 
 .controls{
@@ -55,228 +67,204 @@ margin-top:20px;
 }
 
 button{
-padding:10px 20px;
+padding:10px 18px;
 margin:5px;
 border:none;
-border-radius:6px;
-background:#27ae60;
+border-radius:8px;
+background:#4a6cf7;
 color:white;
-font-size:16px;
+font-size:15px;
 cursor:pointer;
 }
 
 button:hover{
-background:#1e8449;
+background:#3955d3;
 }
 
-button:disabled{
-background:#aaa;
-cursor:not-allowed;
-}
-
-#levelDisplay{
-font-size:18px;
-font-weight:bold;
+.level{
 margin-top:10px;
+font-weight:bold;
 }
 
 </style>
-
 </head>
+
 <body>
 
-<div class="game-container">
+<div class="game">
 
 <h1>Sliding Puzzle</h1>
 
-<div id="puzzle" class="puzzle"></div>
+<div id="puzzle"></div>
 
 <div class="controls">
-<button id="nextLevelButton" disabled>Next Level</button>
-<button id="resetButton">Reset</button>
-<div id="levelDisplay">Level: 1</div>
+<button onclick="resetGame()">Reset</button>
+<button onclick="nextLevel()">Next Level</button>
+<div class="level">Level: <span id="level">1</span></div>
 </div>
 
 </div>
 
 <script>
 
-let currentLevel = 1;
-let puzzleSize = 3;
-let puzzleBoard = [];
-let emptyPos = {row:2,col:2};
+let level=1
+let size=3
+let board=[]
+let empty={}
 
-const puzzleContainer = document.getElementById("puzzle");
-const nextLevelButton = document.getElementById("nextLevelButton");
-const resetButton = document.getElementById("resetButton");
-const levelDisplay = document.getElementById("levelDisplay");
+const puzzle=document.getElementById("puzzle")
 
-function createPuzzleBoard(size){
+function init(){
 
-puzzleSize=size;
-emptyPos={row:size-1,col:size-1};
+board=[]
+let num=1
 
-puzzleBoard=[];
-let num=1;
+for(let r=0;r<size;r++){
 
-for(let i=0;i<size;i++){
+let row=[]
 
-let row=[];
+for(let c=0;c<size;c++){
 
-for(let j=0;j<size;j++){
-
-if(i===size-1 && j===size-1){
-row.push(0);
+if(r===size-1 && c===size-1){
+row.push(0)
+empty={r,c}
 }else{
-row.push(num++);
+row.push(num++)
 }
 
 }
 
-puzzleBoard.push(row);
+board.push(row)
 
 }
 
-shufflePuzzle();
+shuffle()
+render()
 
 }
 
-function shufflePuzzle(){
+function shuffle(){
 
-for(let i=0;i<1000;i++){
+for(let i=0;i<500;i++){
 
-let neighbors=getNeighbors();
-let rand=neighbors[Math.floor(Math.random()*neighbors.length)];
+let n=getNeighbors()
+let rand=n[Math.floor(Math.random()*n.length)]
 
-swapTiles(emptyPos,rand);
-emptyPos=rand;
-
-}
-
-renderPuzzle();
+swap(empty,rand)
+empty=rand
 
 }
 
-function renderPuzzle(){
+}
 
-puzzleContainer.innerHTML="";
+function render(){
 
-puzzleContainer.style.gridTemplateColumns=`repeat(${puzzleSize},1fr)`;
+puzzle.innerHTML=""
+puzzle.style.gridTemplateColumns=`repeat(${size},1fr)`
 
-puzzleBoard.forEach((row,r)=>{
+board.forEach((row,r)=>{
 
 row.forEach((tile,c)=>{
 
-let div=document.createElement("div");
+let div=document.createElement("div")
 
-div.className="tile";
-div.dataset.row=r;
-div.dataset.col=c;
+div.className="tile"
 
-if(tile!==0){
-div.textContent=tile;
+if(tile===0){
+div.classList.add("empty")
 }else{
-div.style.background="transparent";
-div.style.cursor="default";
+div.innerText=tile
 }
 
-div.onclick=handleClick;
+div.onclick=()=>move(r,c)
 
-puzzleContainer.appendChild(div);
+puzzle.appendChild(div)
 
-});
+})
 
-});
+})
+
+}
+
+function move(r,c){
+
+let n=getNeighbors()
+
+if(n.some(p=>p.r===r && p.c===c)){
+
+swap({r,c},empty)
+empty={r,c}
+
+render()
+
+if(checkWin()){
+setTimeout(()=>{
+alert("Level Complete!")
+nextLevel()
+},200)
+}
+
+}
 
 }
 
 function getNeighbors(){
 
-let list=[];
-let {row,col}=emptyPos;
+let list=[]
 
-if(row>0) list.push({row:row-1,col});
-if(row<puzzleSize-1) list.push({row:row+1,col});
-if(col>0) list.push({row,col:col-1});
-if(col<puzzleSize-1) list.push({row,col:col+1});
+let {r,c}=empty
 
-return list;
+if(r>0) list.push({r:r-1,c})
+if(r<size-1) list.push({r:r+1,c})
+if(c>0) list.push({r,c:c-1})
+if(c<size-1) list.push({r,c:c+1})
 
-}
-
-function swapTiles(p1,p2){
-
-let temp=puzzleBoard[p1.row][p1.col];
-puzzleBoard[p1.row][p1.col]=puzzleBoard[p2.row][p2.col];
-puzzleBoard[p2.row][p2.col]=temp;
+return list
 
 }
 
-function handleClick(){
+function swap(a,b){
 
-let r=parseInt(this.dataset.row);
-let c=parseInt(this.dataset.col);
-
-let neighbors=getNeighbors();
-
-if(neighbors.some(n=>n.row===r && n.col===c)){
-
-swapTiles({row:r,col:c},emptyPos);
-emptyPos={row:r,col:c};
-
-renderPuzzle();
-
-if(checkSolved()){
-setTimeout(nextLevel,500);
-}
+let t=board[a.r][a.c]
+board[a.r][a.c]=board[b.r][b.c]
+board[b.r][b.c]=t
 
 }
 
-}
+function checkWin(){
 
-function checkSolved(){
+let n=1
 
-for(let i=0;i<puzzleSize;i++){
+for(let r=0;r<size;r++){
+for(let c=0;c<size;c++){
 
-for(let j=0;j<puzzleSize;j++){
+if(r===size-1 && c===size-1) return true
 
-if(puzzleBoard[i][j]!==i*puzzleSize+j+1 && !(i===puzzleSize-1 && j===puzzleSize-1)){
-return false;
-}
-
-}
+if(board[r][c]!==n++) return false
 
 }
-
-return true;
+}
 
 }
 
 function nextLevel(){
 
-if(currentLevel<5){
+level++
+size++
 
-currentLevel++;
-puzzleSize++;
+document.getElementById("level").innerText=level
 
-levelDisplay.textContent="Level: "+currentLevel;
-
-createPuzzleBoard(puzzleSize);
+init()
 
 }
 
-}
+function resetGame(){
 
-function resetLevel(){
-
-createPuzzleBoard(puzzleSize);
+init()
 
 }
 
-nextLevelButton.onclick=nextLevel;
-resetButton.onclick=resetLevel;
-
-createPuzzleBoard(puzzleSize);
+init()
 
 </script>
 
